@@ -16,6 +16,11 @@ Adafruit Feather M4 Express CAN board.
 - **NeoPixel Data:** PB02
 - **NeoPixel Power:** PB03
 
+Note that the official documentation is wrong. https://learn.adafruit.com/adafruit-feather-m4-can-express/pinouts
+
+Express CAN has Neopixel Data on PB02, NOT on PB22 as indicated. PB03 is a power GPIO.
+
+
 ## Building
 
 ```bash
