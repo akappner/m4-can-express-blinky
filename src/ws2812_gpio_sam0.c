@@ -225,7 +225,7 @@ static int ws2812_gpio_sam0_init(const struct device *dev)
 			return ret;
 		}
 
-		LOG_INF("NeoPixel power enabled on port %s pin %d",
+		LOG_DBG("NeoPixel power enabled on port %s pin %d",
 			cfg->power_gpio.port->name, cfg->power_gpio.pin);
 
 		k_msleep(10);
@@ -266,7 +266,7 @@ static int ws2812_gpio_sam0_init(const struct device *dev)
 	port->DIRSET.reg = BIT(pin);
 	port->OUTCLR.reg = BIT(pin);
 
-	LOG_INF("WS2812 SAM0 GPIO driver initialized on port %s pin %d",
+	LOG_DBG("WS2812 SAM0 GPIO driver initialized on port %s pin %d",
 		cfg->gpio.port->name, pin);
 
 	return 0;

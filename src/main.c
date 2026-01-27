@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <errno.h>
 #include <string.h>
 
 #define LOG_LEVEL 4
@@ -15,8 +14,6 @@ LOG_MODULE_REGISTER(main);
 #include <zephyr/drivers/led_strip.h>
 #include <zephyr/device.h>
 #include <zephyr/sys/util.h>
-#include <zephyr/usb/usb_device.h>
-#include <zephyr/drivers/uart.h>
 
 #define STRIP_NUM_PIXELS 1
 
@@ -37,42 +34,16 @@ int main(void)
 {
 	size_t color = 0;
 	int rc;
-	uint32_t dtr = 0;
 
-	/* Enable USB */
-	const struct device *usb_dev = DEVICE_DT_GET_ONE(zephyr_cdc_acm_uart);
+	/* Immediate marker - should appear right away */
+	printk("\n*** main() started ***\n");
 
-	if (!device_is_ready(usb_dev)) {
-		LOG_ERR("USB device not ready");
-		return 0;
-	}
+	/* USB is auto-initialized at boot (CONFIG_USB_DEVICE_INITIALIZE_AT_BOOT=y) */
+	/* Brief delay to allow USB enumeration to complete */
+	k_sleep(K_MSEC(1000));
 
-	rc = usb_enable(NULL);
-	if (rc != 0 && rc != -EALREADY) {
-		LOG_ERR("Failed to enable USB: %d", rc);
-		return 0;
-	}
-
-	/* Wait for DTR (terminal connected) - with timeout */
-	LOG_INF("Waiting for USB connection...");
-	int wait_count = 0;
-	while (!dtr && wait_count < 100) {
-		uart_line_ctrl_get(usb_dev, UART_LINE_CTRL_DTR, &dtr);
-		k_sleep(K_MSEC(100));
-		wait_count++;
-	}
-
-	if (dtr) {
-		LOG_INF("USB connected!");
-	} else {
-		LOG_INF("USB timeout, continuing anyway...");
-	}
-
-	/* Give terminal time to start receiving */
-	k_sleep(K_MSEC(500));
-
-	LOG_INF("=== NeoPixel LED Strip Demo ===");
-	LOG_INF("Strip device: %s", strip->name);
+	printk("\n=== NeoPixel LED Strip Demo ===\n");
+	printk("Strip device: %s\n", strip->name);
 
 	if (device_is_ready(strip)) {
 		LOG_INF("LED strip device is ready");
