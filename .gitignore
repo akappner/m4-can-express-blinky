@@ -1,0 +1,14 @@
+# Build directory
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Zephyr artifacts
+*.pyc
+__pycache__/
+

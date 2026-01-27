@@ -1,0 +1,23 @@
+# Copyright (c) 2024
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Worldsemi WS2812 LED strip with optional power control GPIO.
+
+  Extension of the standard ws2812-gpio binding that adds support for
+  boards where the NeoPixel has a separate power enable pin (like the
+  Adafruit Feather M4 Express CAN).
+
+compatible: "worldsemi,ws2812-gpio-power"
+
+include: worldsemi,ws2812-gpio.yaml
+
+properties:
+  power-gpios:
+    type: phandle-array
+    description: |
+      Optional GPIO pin that controls power to the NeoPixel.
+      Set HIGH to enable power, LOW to disable.
+      Required on boards like Feather M4 Express CAN where the
+      NeoPixel is powered from a GPIO rather than the 3.3V rail.
+
