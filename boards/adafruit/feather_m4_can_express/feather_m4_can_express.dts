@@ -1,0 +1,173 @@
+/*
+ * Copyright (c) 2024
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Adafruit Feather M4 CAN Express
+ * Uses ATSAME51J19A (NOT SAMD51!) which has CAN support
+ */
+
+/dts-v1/;
+#include <atmel/same5xx19.dtsi>
+#include "feather_m4_can_express-pinctrl.dtsi"
+#include <zephyr/dt-bindings/led/led.h>
+
+/ {
+	model = "Adafruit Feather M4 CAN Express";
+	compatible = "adafruit,feather-m4-can-express";
+
+	chosen {
+		zephyr,console = &sercom5;
+		zephyr,shell-uart = &sercom5;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &code_partition;
+		zephyr,canbus = &can1;
+	};
+
+	aliases {
+		led0 = &led0;
+		pwm-0 = &tcc0;
+		pwm-1 = &tc0;
+		led-strip = &led_strip;
+		can-boost-enable = &boost_enable;
+		can-standby = &can_standby;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led_0 {
+			gpios = <&porta 23 0>;
+			label = "LED";
+		};
+	};
+
+	/* NeoPixel LED - PB02 data, PB03 power enable */
+	led_strip: ws2812 {
+		compatible = "worldsemi,ws2812-gpio";
+		gpios = <&portb 2 0>;
+		chain-length = <1>;
+		color-mapping = <LED_COLOR_ID_GREEN
+				 LED_COLOR_ID_RED
+				 LED_COLOR_ID_BLUE
+				 LED_COLOR_ID_WHITE>;
+	};
+
+	/* CAN transceiver control GPIOs */
+	can_xcvr_ctrl {
+		compatible = "gpio-leds";
+
+		/* Boost converter enable: PB13 (HIGH to enable 5V for CAN bus) */
+		boost_enable: boost_enable {
+			gpios = <&portb 13 0>;
+			label = "BOOST_ENABLE";
+		};
+
+		/* CAN transceiver standby: PB12 (LOW to enable transceiver) */
+		can_standby: can_standby {
+			gpios = <&portb 12 0>;
+			label = "CAN_STANDBY";
+		};
+	};
+
+	/* NeoPixel power enable: PB03 */
+	neopixel_pwr {
+		compatible = "gpio-leds";
+		neopixel_power: neopixel_power {
+			gpios = <&portb 3 0>;
+			label = "NEOPIXEL_POWER";
+		};
+	};
+};
+
+&cpu0 {
+	clock-frequency = <120000000>;
+};
+
+&sercom5 {
+	status = "okay";
+	compatible = "atmel,sam0-uart";
+	current-speed = <115200>;
+	rxpo = <1>;
+	txpo = <0>;
+	pinctrl-0 = <&sercom5_uart_default>;
+	pinctrl-names = "default";
+};
+
+&sercom1 {
+	status = "okay";
+	compatible = "atmel,sam0-spi";
+	dipo = <3>;
+	dopo = <0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-0 = <&sercom1_spi_default>;
+	pinctrl-names = "default";
+};
+
+&tcc0 {
+	status = "okay";
+	compatible = "atmel,sam0-tcc-pwm";
+	prescaler = <8>;
+	#pwm-cells = <2>;
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-names = "default";
+};
+
+&tc0 {
+	status = "okay";
+	compatible = "atmel,sam0-tc-pwm";
+	prescaler = <1024>;
+	#pwm-cells = <2>;
+	channels = <2>;
+	counter-size = <16>;
+	pinctrl-0 = <&tc0_default>;
+	pinctrl-names = "default";
+};
+
+zephyr_udc0: &usb0 {
+	status = "okay";
+	pinctrl-0 = <&usb_dc_default>;
+	pinctrl-names = "default";
+};
+
+&dmac {
+	status = "okay";
+};
+
+/* CAN1 controller - connected to on-board transceiver */
+&can1 {
+	status = "okay";
+	pinctrl-0 = <&can1_default>;
+	pinctrl-names = "default";
+
+	can-transceiver {
+		max-bitrate = <1000000>;
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "uf2";
+			reg = <0x00000000 DT_SIZE_K(16)>;
+			read-only;
+		};
+
+		code_partition: partition@4000 {
+			label = "code";
+			reg = <0x4000 DT_SIZE_K(512-16-16)>;
+			read-only;
+		};
+
+		storage_partition: partition@7c000 {
+			label = "storage";
+			reg = <0x7c000 DT_SIZE_K(16)>;
+		};
+	};
+};
+
