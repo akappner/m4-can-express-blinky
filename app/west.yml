@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# West manifest for M4 Express NeoPixel Blinky
+# This makes the project a self-contained Zephyr application
+
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import: true
+
+  self:
+    path: app

@@ -1,6 +1,12 @@
 # Build directory
 build/
 
+# West workspace dependencies (downloaded by `west update`)
+zephyr/
+modules/
+tools/
+bootloader/
+
 # IDE
 .vscode/
 .idea/

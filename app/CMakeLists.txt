@@ -2,6 +2,9 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 
+# Add custom board directory (for feather_m4_can_express)
+list(APPEND BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
 # Add custom DTS bindings directory
 list(APPEND DTS_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
