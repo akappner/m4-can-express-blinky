@@ -6,6 +6,7 @@
  */
 
 #include <zephyr/dt-bindings/led/led.h>
+#include <dt-bindings/pinctrl/same51j-pinctrl.h>
 
 / {
     chosen {
@@ -38,6 +39,15 @@
 &zephyr_udc0 {
     cdc_acm_uart0: cdc_acm_uart0 {
         compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+/* Override PWM0 pinctrl to use LED pin PA23 (TCC0_WO3) */
+&pinctrl {
+    pwm0_default: pwm0_default {
+        group1 {
+            pinmux = <PA23G_TCC0_WO3>;
+        };
     };
 };
 

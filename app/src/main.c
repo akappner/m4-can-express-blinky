@@ -39,7 +39,7 @@ int main(void)
 	LOG_INF("=== Feather M4 CAN Express Demo ===");
 	LOG_INF("LED thread: NeoPixel color cycling");
 	LOG_INF("CAN RX thread: listening for CAN frames");
-	LOG_INF("PWM0 thread: PA22 duty cycle sweep");
+	LOG_INF("PWM0 thread: PA23/D13 LED duty cycle sweep");
 	LOG_INF("PWM1 thread: PA5 duty cycle sweep");
 
 	return 0;
