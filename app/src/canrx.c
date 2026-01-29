@@ -42,11 +42,6 @@ static int can_transceiver_enable(void)
 		return -ENODEV;
 	}
 
-	ret = gpio_pin_configure_dt(&boost_enable, GPIO_OUTPUT_HIGH);
-	if (ret < 0) {
-		LOG_ERR("Failed to configure boost enable: %d", ret);
-		return ret;
-	}
 
 	/* Configure CAN standby GPIO (LOW to enable transceiver) */
 	if (!gpio_is_ready_dt(&can_standby)) {
@@ -57,6 +52,12 @@ static int can_transceiver_enable(void)
 	ret = gpio_pin_configure_dt(&can_standby, GPIO_OUTPUT_LOW);
 	if (ret < 0) {
 		LOG_ERR("Failed to configure CAN standby: %d", ret);
+		return ret;
+	}
+
+	ret = gpio_pin_configure_dt(&boost_enable, GPIO_OUTPUT_HIGH);
+	if (ret < 0) {
+		LOG_ERR("Failed to configure boost enable: %d", ret);
 		return ret;
 	}
 
@@ -93,6 +94,20 @@ static void canrx_thread_entry(void *p1, void *p2, void *p3)
 	ret = can_transceiver_enable();
 	if (ret < 0) {
 		LOG_ERR("Failed to enable CAN transceiver");
+		return;
+	}
+
+	/* Set CAN bitrate to 500 kbit/s */
+	ret = can_set_bitrate(can_dev, 500000);
+	if (ret < 0) {
+		LOG_ERR("Failed to set CAN bitrate: %d", ret);
+		return;
+	}
+
+	/* Set listen-only mode (passive - no ACKs or transmissions) */
+	ret = can_set_mode(can_dev, CAN_MODE_LISTENONLY);
+	if (ret < 0) {
+		LOG_ERR("Failed to set CAN mode: %d", ret);
 		return;
 	}
 

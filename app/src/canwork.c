@@ -62,16 +62,16 @@ static void canwork_thread_entry(void *p1, void *p2, void *p3)
 		if (ret == 0) {
 			frames_processed++;
 
-			/* Print the frame */
-			if (frame.flags & CAN_FRAME_IDE) {
-				LOG_INF("CAN RX: ID=0x%08x [%d]", frame.id, frame.dlc);
-			} else {
-				LOG_INF("CAN RX: ID=0x%03x [%d]", frame.id, frame.dlc);
-			}
-
-			/* Print data bytes */
-			if (frame.dlc > 0) {
-				LOG_HEXDUMP_INF(frame.data, frame.dlc, "Data:");
+			/* Only log every 100th frame to avoid USB bottleneck */
+			if ((frames_processed % 1) == 0) {
+				/* Print the frame */
+				if (frame.flags & CAN_FRAME_IDE) {
+					LOG_INF("CAN RX: ID=0x%08x [%d] (total: %u)",
+						frame.id, frame.dlc, frames_processed);
+				} else {
+					LOG_INF("CAN RX: ID=0x%03x [%d] (total: %u)",
+						frame.id, frame.dlc, frames_processed);
+				}
 			}
 		}
 	}
