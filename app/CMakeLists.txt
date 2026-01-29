@@ -13,6 +13,9 @@ project(m4_express_blinky)
 
 target_sources(app PRIVATE
     src/main.c
+    src/led.c
+    src/canrx.c
+    src/pwm.c
     src/ws2812_gpio_sam0.c
 )
 
