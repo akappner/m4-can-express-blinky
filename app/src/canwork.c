@@ -10,6 +10,7 @@ LOG_MODULE_REGISTER(canwork);
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/can.h>
+#include <zephyr/sys/atomic.h>
 
 #include "canwork.h"
 
@@ -23,9 +24,9 @@ LOG_MODULE_REGISTER(canwork);
 /* Message queue for canrx -> canwork communication */
 K_MSGQ_DEFINE(can_work_msgq, sizeof(struct can_frame), CAN_WORK_QUEUE_DEPTH, 4);
 
-/* Statistics */
-static volatile uint32_t frames_processed;
-static volatile uint32_t frames_dropped;
+/* Statistics (atomic for thread-safe access) */
+static atomic_t frames_processed;
+static atomic_t frames_dropped;
 
 int canwork_submit(const struct can_frame *frame)
 {
@@ -33,13 +34,18 @@ int canwork_submit(const struct can_frame *frame)
 
 	ret = k_msgq_put(&can_work_msgq, frame, K_NO_WAIT);
 	if (ret != 0) {
-		frames_dropped++;
-		LOG_WRN("Work queue full, frame dropped (total dropped: %u)",
-			frames_dropped);
+		atomic_inc(&frames_dropped);
+		LOG_WRN("Work queue full, frame dropped (total dropped: %ld)",
+			atomic_get(&frames_dropped));
 		return -ENOMSG;
 	}
 
 	return 0;
+}
+
+uint32_t canwork_get_frames_processed(void)
+{
+	return (uint32_t)atomic_get(&frames_processed);
 }
 
 /*
@@ -60,17 +66,17 @@ static void canwork_thread_entry(void *p1, void *p2, void *p3)
 		/* Wait for a frame to process */
 		ret = k_msgq_get(&can_work_msgq, &frame, K_FOREVER);
 		if (ret == 0) {
-			frames_processed++;
+			atomic_val_t count = atomic_inc(&frames_processed) + 1;
 
 			/* Only log every 100th frame to avoid USB bottleneck */
-			if ((frames_processed % 1) == 0) {
+			if ((count % 3) == 1) {
 				/* Print the frame */
 				if (frame.flags & CAN_FRAME_IDE) {
-					LOG_INF("CAN RX: ID=0x%08x [%d] (total: %u)",
-						frame.id, frame.dlc, frames_processed);
+					LOG_INF("CAN RX: ID=0x%08x [%d] (total: %ld)",
+						frame.id, frame.dlc, count);
 				} else {
-					LOG_INF("CAN RX: ID=0x%03x [%d] (total: %u)",
-						frame.id, frame.dlc, frames_processed);
+					LOG_INF("CAN RX: ID=0x%03x [%d] (total: %ld)",
+						frame.id, frame.dlc, count);
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * LED Thread - NeoPixel color cycling
+ * LED Thread - NeoPixel color cycling based on CAN frames
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,6 +14,8 @@ LOG_MODULE_REGISTER(led);
 #include <zephyr/drivers/led_strip.h>
 #include <zephyr/device.h>
 #include <zephyr/sys/util.h>
+
+#include "canwork.h"
 
 #define STRIP_NUM_PIXELS 1
 
@@ -55,23 +57,21 @@ static void led_thread_entry(void *p1, void *p2, void *p3)
 	}
 
 	LOG_INF("LED strip device is ready");
-	LOG_INF("Starting color cycle: Red -> Green -> Blue -> White");
+	LOG_INF("Starting color cycle based on CAN frames received");
 
 	while (1) {
+		/* Select color based on CAN frames received mod 4 */
+		color = canwork_get_frames_processed() % ARRAY_SIZE(colors);
+
 		memset(&pixels, 0x00, sizeof(pixels));
 		memcpy(&pixels[0], &colors[color], sizeof(struct led_rgb));
-
-		LOG_INF("Color %zu: R=%02x G=%02x B=%02x",
-			color, pixels[0].r, pixels[0].g, pixels[0].b);
 
 		rc = led_strip_update_rgb(strip, pixels, STRIP_NUM_PIXELS);
 		if (rc) {
 			LOG_ERR("led_strip_update_rgb failed: %d", rc);
 		}
 
-		k_sleep(K_MSEC(1000));
-
-		color = (color + 1) % ARRAY_SIZE(colors);
+		k_sleep(K_MSEC(50));
 	}
 }
 

@@ -19,4 +19,9 @@ extern struct k_msgq can_work_msgq;
  */
 int canwork_submit(const struct can_frame *frame);
 
+/*
+ * Get the number of CAN frames processed.
+ */
+uint32_t canwork_get_frames_processed(void);
+
 #endif /* CANWORK_H_ */
